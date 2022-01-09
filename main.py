@@ -1,5 +1,12 @@
 """
-Here we simulate the behaviour of the TLS protocol and execute a padding oracle attack.
+This file contains the padding oracle function and the actual attack.
+Latin-1 encoding was chosen as it store each character in exactly one byte, it covers
+the majority of the use cases in the west, and it is compatible with ASCII.
+The PLAIN_TEXT constant accepts every string with Latin-1 letters, from 16 to 31 character long
+(in order to be padded to two blocks, that is because if exactly 32 characters are given, a
+third block for padding is added, if less of 16 characters are given, there is only one block and
+not two as requested).
+We simulate the behaviour of the TLS protocol and execute a padding oracle attack.
 """
 import random
 import time
@@ -49,14 +56,31 @@ def retrieve_last_block():
     """
     At the beginning the tag of the plaintext is computed and then the plaintext and the MAC tag
     are encrypted (MAC-then-encrypt).
-    The rest of the function is very similar to the one in the simple version, there is however a
-    major difference:
-    the correct letter is not chosen based on the boolean response of the padding_oracle function,
+    A while loop with index j is executed 16 times (the bytes of the last block to recover),
+    j random characters are generated.
+    A for loop is executed, inside this we calculate the characters of the first block of the
+    ciphertext in order to have a correct padding, knowing the previous intermediate values.
+    For example at the third run of the while loop we know that the padding has to be 333, we know
+    the 15th and 16th values of intermediate and with that we can calculate the 15th and 16th value
+    of the ciphertext in order to have a correct padding. We do that by xoring intermediate with the
+    desired padding.
+    Then the 14th value of the ciphertext is retrieved trying all the 256 possible values (1 byte):
+    a random prefix, our guess and the values retrieved in the for loop thanks to the padding are
+    added together and passed to the padding oracle, if the padding is correct we have guessed
+    our unknown byte in the ciphertext in order to have a correct padding in the plaintext.
+    The correct letter is not chosen based on the boolean response of the padding_oracle function,
     instead all the times necessaries to perform the padding_oracle function are stored in an
     array, and then the correct letter is chosen based on the maximum time that was necessary
     to execute the function, that is because it means that the MAC check was executed (which
     requires more time) and therefore the padding was correct (there is no MAC check if the
     padding is not correct).
+    This byte is xored with the corresponding plaintext byte (which is the padding) and we retrieve
+    the desired intermediate state.
+    The plaintext character is then simply the intermediate character xored with the corresponding
+    character of the chipertext (second block).
+    Going on in this way we can recover all the last block.
+    At the end if the last block of the plaintext is equal to the result of the attack a success
+    message is printed.
     :return: None.
     """
     sign = hmac.HMAC(KEY_MAC, hashes.SHA256())
