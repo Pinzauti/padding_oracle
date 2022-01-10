@@ -98,14 +98,14 @@ def retrieve_last_block(cipher_text):
             cipher_correct_padding = cipher_correct_padding + bytes(chr(character_correct_padding),
                                                                     encoding='latin-1')
         guess = {}
-        length_time = [0] * 256
+        oracle_times = [0] * 256
         for i in range(256):
             guess[i] = ran + bytes(chr(i), encoding='latin-1') + \
                   cipher_correct_padding + cipher_text[48:]
             chronometer = time.perf_counter_ns()
             padding_oracle(guess[i])
-            length_time[i] = time.perf_counter_ns() - chronometer
-        intermediate[j] = guess[length_time.index(max(length_time))][j] ^ (16 - j)
+            oracle_times[i] = time.perf_counter_ns() - chronometer
+        intermediate[j] = guess[oracle_times.index(max(oracle_times))][j] ^ (16 - j)
         solution[j] = intermediate[j] ^ cipher_text[32 + j]
         j = j - 1
 
