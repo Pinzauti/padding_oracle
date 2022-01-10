@@ -101,7 +101,6 @@ def retrieve_last_block():
             cipher_correct_padding = cipher_correct_padding + bytes(chr(character_correct_padding),
                                                                     encoding='latin-1')
         guess = {}
-        guess.clear()
         length_time = [0] * 256
         for i in range(256):
             guess[i] = ran + bytes(chr(i), encoding='latin-1') + \
