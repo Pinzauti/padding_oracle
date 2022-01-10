@@ -9,6 +9,7 @@ not two as requested).
 We simulate the behaviour of the TLS protocol and execute a padding oracle attack.
 """
 import random
+import secrets
 import time
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.primitives import hashes, hmac
@@ -17,9 +18,9 @@ from pad_oracle import PaddingOracle
 
 PLAIN_TEXT = 'hidetestsmessageanotherblockye'.encode('latin-1')
 
-IV = '0123456789012345'.encode('latin-1')
-KEY = '0123456789012345'.encode('latin-1')
-KEY_MAC = '0123456789012345'.encode('latin-1')
+IV = secrets.token_bytes(16)
+KEY = secrets.token_bytes(16)
+KEY_MAC = secrets.token_bytes(16)
 
 p = PaddingOracle(KEY, IV)
 
