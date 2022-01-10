@@ -11,8 +11,8 @@ class PaddingOracle:
     Key and IV (aka initial value) are the values necessaries to encrypt and decrypt.
     They are encoded to bytes using latin-1.
     """
-    key = '0'.encode('latin-1')
-    i_v = '0'.encode('latin-1')
+    key = b'0'
+    i_v = b'0'
 
     def __init__(self, k, i_v):
         self.key = k
