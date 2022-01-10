@@ -7,6 +7,8 @@ The PLAIN_TEXT constant accepts every string with Latin-1 letters, from 16 to 31
 third block for padding is added, if less of 16 characters are given, there is only one block and
 not two as requested).
 We simulate the behaviour of the TLS protocol and execute a padding oracle attack.
+At the beginning the tag of the plaintext is computed and then the plaintext and the MAC tag
+are encrypted (MAC-then-encrypt).
 """
 import random
 import secrets
@@ -53,10 +55,8 @@ def padding_oracle(cipher_text):
     return b'Encryption successful'
 
 
-def retrieve_last_block():
+def retrieve_last_block(cipher_text):
     """
-    At the beginning the tag of the plaintext is computed and then the plaintext and the MAC tag
-    are encrypted (MAC-then-encrypt).
     A while loop with index j is executed 16 times (the bytes of the last block to recover),
     j random characters are generated.
     A for loop is executed, inside this we calculate the characters of the first block of the
@@ -82,12 +82,9 @@ def retrieve_last_block():
     Going on in this way we can recover all the last block.
     At the end if the last block of the plaintext is equal to the result of the attack a success
     message is printed.
+    :param cipher_text: The ciphertext of which to recover the last block.
     :return: None.
     """
-    sign = hmac.HMAC(KEY_MAC, hashes.SHA256())
-    sign.update(PLAIN_TEXT)
-    to_be_padded = sign.finalize() + PLAIN_TEXT
-    cipher_text = p.encrypt(to_be_padded)
     intermediate = [0] * 16
     solution = [0] * 16
     j = 15
@@ -118,4 +115,6 @@ def retrieve_last_block():
               f'plaintext was {PLAIN_TEXT}.')
 
 
-retrieve_last_block()
+hmac.HMAC(KEY_MAC, hashes.SHA256()).update(PLAIN_TEXT)
+to_be_padded = hmac.HMAC(KEY_MAC, hashes.SHA256()).finalize() + PLAIN_TEXT
+retrieve_last_block(p.encrypt(to_be_padded))
